@@ -1,0 +1,56 @@
+Option Explicit
+' this process runs when which cells on the worksheet are selected
+' changes, so clicking on a cell or selecting multiple cells
+Private Sub Worksheet_SelectionChange(ByVal Target As Range)
+' declare variables
+Dim rOptions As Range
+Dim rSelections As Range
+Dim xOptions As Range
+Dim xSelections As Range
+Dim XOpCount As Long
+Dim XSelCount As Long
+Dim targetCount As Long
+Dim clRng As Range
+
+Application.EnableEvents = False ' this prevents infinite loops
+
+' this is mostly for readibility, partially so we're only running
+' these once when many are used multiple times
+' these set the ranges used later to the named ranges on this sheet
+' with the names in the quotations
+
+Set rOptions = Range("Options")
+Set rSelections = Range("selections")
+Set xOptions = Intersect(Target, rOptions) ' cells selected within options
+Set xSelections = Intersect(Target, rSelections) ' cells selected within selections
+If Not xOptions Is Nothing Then XOpCount = xOptions.Cells.Count ' how many cells selected in options
+If Not xSelections Is Nothing Then XSelCount = xSelections.Cells.Count ' how many cells selected in selections
+Let targetCount = Target.Cells.Count ' how many cells selected
+
+    ' check if the changed cells 'Target' contain any of the cells
+    ' in the named range Options and make sure that the selection is
+    ' all within the options list, if it is the number of cells selected
+    ' within the list should be equal to the number selected
+    
+        If Not xOptions Is Nothing And targetCount = XOpCount Then
+            
+            ' if they do go through and make sure the value isn't already in
+            ' the selection list, if not add it to the next blank space
+            
+            For Each clRng In Target
+                If rSelections.Find(clRng.value) Is Nothing Then rSelections.Find("", LookIn:=xlValues, LookAt:=xlWhole, after:=rSelections.Cells(rSelections.Count)) = clRng.value
+            Next clRng
+    
+        End If
+    
+    ' check if the selected cells were in the selections list, if so clears them
+        If Not xSelections Is Nothing And targetCount = XSelCount Then
+            xSelections.ClearContents
+        End If
+    
+Application.EnableEvents = True ' turn this back on so events like this work again
+End Sub
+
+Private Sub ReEvents()
+    Application.EnableEvents = True
+End Sub

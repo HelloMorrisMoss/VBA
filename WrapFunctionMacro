@@ -1,0 +1,43 @@
+Sub WrapperFunction()
+Dim rng1 As Range
+Dim rngArea As Range
+Dim i As Long
+Dim j As Long
+Dim X()
+Dim AppCalc As Long
+Dim inputleft As String
+Dim inputright As String
+
+inputleft = InputBox("What goes after =?" & Chr(10) & "Don't put the = unless you want double =='s")
+inputright = InputBox("What goes at the end?")
+
+On Error Resume Next
+Set rng1 = Selection.SpecialCells(xlFormulas)
+On Error GoTo 0
+If rng1 Is Nothing Then Exit Sub
+
+With Application
+    AppCalc = .Calculation
+    .ScreenUpdating = False
+    .Calculation = xlCalculationManual
+End With
+
+For Each rngArea In rng1.Areas
+    If rngArea.Cells.count > 1 Then
+        X = rngArea.Formula
+        For i = 1 To rngArea.Rows.count
+            For j = 1 To rngArea.Columns.count
+                X(i, j) = "=" & inputleft & Right$(X(i, j), Len(X(i, j)) - 1) & inputright
+            Next j
+        Next i
+        rngArea = X
+    Else
+        rngArea.Value = "=" & inputleft & Right$(rngArea.Formula, Len(rngArea.Formula) - 1) & inputright
+    End If
+Next rngArea
+
+With Application
+    .ScreenUpdating = True
+    .Calculation = AppCalc
+End With
+End Sub

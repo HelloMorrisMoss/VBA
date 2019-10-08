@@ -1,0 +1,56 @@
+Option Explicit
+Public Sub AddSectionPageNumberTextbox()
+Dim sld As Slide
+Dim shp As Shape
+Dim pgInSect As Long
+Dim lastSldSect As String
+Dim boxFromTop As Long
+
+
+
+' figure out how big the slides are in the presentation to place textbox near bottom
+boxFromTop = ActivePresentation.PageSetup.SlideHeight - 13
+
+
+' loop through each slide
+For Each sld In ActivePresentation.Slides
+      
+    ' skip the title page and contents page
+    If ActivePresentation.SectionProperties.Name(sld.sectionIndex) = "Default Section" Then
+        DoEvents
+    Else
+    
+        ' delete old page numbers
+        For Each shp In sld.Shapes
+            If shp.Tags("Textbox Purpose") = "Page Numbers" Then shp.Delete
+        Next shp
+          
+          
+          ' Count Pages in Section, for page number
+        If ActivePresentation.SectionProperties.Name(sld.sectionIndex) <> lastSldSect Then
+            lastSldSect = ActivePresentation.SectionProperties.Name(sld.sectionIndex)
+            pgInSect = 1
+        Else
+            pgInSect = pgInSect + 1
+        End If
+          
+        ' add a textbox for the page numbers
+        With sld.Shapes.AddTextbox(msoTextOrientationHorizontal, Left:=5, Top:=boxFromTop, Width:=300, Height:=50)
+           
+            ' set font options
+            With .TextFrame.TextRange.Font
+                .Size = 8
+                .Italic = msoTrue
+                .Bold = msoFalse
+            End With
+            
+            ' add the text
+            .TextFrame.TextRange.Text = ActivePresentation.SectionProperties.Name(sld.sectionIndex) & " Page " & pgInSect & " of " & ActivePresentation.SectionProperties.SlidesCount(sld.sectionIndex)
+            
+            ' add a tag to make cleaning up old versions easy
+            .Tags.Add "Textbox Purpose", "Page Numbers"
+        
+        End With
+    End If
+  Next sld
+End Sub

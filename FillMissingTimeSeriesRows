@@ -1,0 +1,98 @@
+Public Sub FillUnchangedTimestamps()
+    Dim selRange As Name
+    Dim selSheet As Worksheet
+    Dim rowRange As Range
+    Dim rowTime As Range
+    Dim rowSecond As Long
+    Dim nextRowSecond As Long
+    Dim nextSecond As Long
+    Dim rowCounter As Long
+    Dim rowCount As Long
+    Dim loopCounter As Long
+    Dim nameAdd As String
+    
+    With Application
+        .ScreenUpdating = False
+        .Calculation = xlCalculationManual
+        .EnableEvents = False
+    End With
+    
+    Debug.Print Replace(Space(10), " ", Chr(10))
+    
+    nameAdd = Application.Names.Add("selRange", SelectContiguous, True)
+    Debug.Print Names("selRange").RefersToRange.Address
+    Set selRange = Names("selRange")
+   
+    Set selSheet = Application.ActiveSheet
+    
+    rowCounter = 1
+    rowCount = selRange.RefersToRange.Rows.Count + 1
+    
+    
+    'For rowCounter = 1 To rowCount
+    While rowCounter < rowCount
+'        Debug.Print TypeName(selSheet.Rows(selRange.Rows(rowCounter).Row)), TypeName(selRange.Columns(1))
+      '  Debug.Print selRange.Rows(rowCounter).Address, selSheet.Rows(selRange.Rows(rowCounter).Row).Address, selRange.Columns(1).Address
+        Set rowRange = selRange.RefersToRange.Rows(rowCounter)
+        Set rowTime = selRange.RefersToRange.Cells(rowCounter, 1) 'Intersect(selrange.referstorange.Rows(rowCounter), selrange.referstorange.Columns(1))
+       ' rowSecond = Second(rowTime)
+        'Debug.Print Now, selrange.referstorange.Rows.Count, rowCounter, rowCount, rowTime
+        Debug.Print Now, "this row", rowRange.Address
+       ' Debug.Print Now, Intersect(selSheet.UsedRange, rowRange).Cells(1, 1).Value '.Offset(1, 0).Value
+        
+        On Error GoTo except:
+        rowSecond = Second(rowTime.Value)
+        nextSecond = Second(DateAdd("s", 1, rowTime.Value))
+        nextRowSecond = Second(rowTime.Offset(1, 0).Value)
+        Debug.Print rowSecond, nextRowSecond, nextSecond
+        If nextSecond <> nextRowSecond Then ' if the next row's second isn't the next second -> either missing or multiple
+            If rowSecond <> nextRowSecond Then ' if this row's second isn't equal to the next row's -> if it's not a multiple, must be missing
+                'Debug.Print Now, "skip", DateAdd("s", 1, rowTime.Value), rowTime.Offset(1, 0).Value
+                'Debug.Print Now, "skip",
+                rowRange.Copy
+                rowRange.Offset(1).Insert shift:=xlShiftDown
+                rowRange.Cells(1, 1).Offset(1, 0).Value = DateAdd("s", 1, rowTime.Value)
+                rowRange.Offset(1, 0).Font.Bold = True
+                Application.CutCopyMode = False
+                rowCount = rowCount + 1
+                
+            End If
+        End If
+        'Debug.Print Now, "no error, yay"
+        GoTo Finally
+except:
+        Debug.Print "except", Err.Description
+        'Debug.Print Now, TypeName(DateAdd("s", 1, rowTime)), TypeName(rowRange.Offset(1, 0).Value)
+'        Debug.Print Now, Str(selRange.Rows(rowCounter).Offset(1, 0).Value)
+        On Error GoTo -1
+        
+Finally:
+        ' runaway loop protection
+        loopCounter = loopCounter + 1
+        If loopCounter > 100 Then Exit Sub
+        rowCounter = rowCounter + 1
+        Debug.Print Now, rowCounter, rowCount
+    Wend
+    
+    With Application
+        .Names("selRange").Delete
+        .Calculation = xlCalculationAutomatic
+        .EnableEvents = True
+        .ScreenUpdating = True
+    End With
+    
+End Sub
+
+
+Private Function SelectContiguous() As Range
+    Dim celRange As Range
+    Dim contRange As Range
+    
+    Set celRange = Application.Selection
+    Debug.Print celRange.End(xlToRight).Column, celRange.Column, celRange.End(xlToRight).Column - celRange.Column
+    Set contRange = celRange.Resize(celRange.End(xlDown).Row - celRange.Row, celRange.End(xlToRight).Column - celRange.Column + 1)
+    Debug.Print contRange.Address
+    
+    Set SelectContiguous = contRange
+
+End Function

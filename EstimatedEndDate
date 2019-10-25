@@ -1,0 +1,23 @@
+Public Function TotalTimeToDate(hoursRange As Range) As String
+ Dim clr As Range
+ Dim ws As Worksheet
+ Dim thisHourRng As Range
+ Dim total As Long
+ 
+ Set clr = Application.Caller
+ Set ws = clr.Parent
+ 
+ Debug.Print Now, ws.Name, clr.Address, clr.Row, TypeName(ws.Rows(clr.Row))
+ Debug.Print "hrsrng", hoursRange.Address
+ 
+ 
+ If Not Intersect(ws.Rows(clr.Row), hoursRange) Is Nothing Then Set thisHourRng = Intersect(ws.Rows(clr.Row), hoursRange)
+ total = clr.Offset(-1, 0).Value + thisHourRng.Value
+ Debug.Print total, clr.Offset(-1, 0).Value, thisHourRng.Offset(0, -1).Value
+
+
+TotalTimeToDate = total
+    
+    
+    'TotalTimeToDate = Application.Caller.Address 'just for testing, this prints the address of the cell
+End Function

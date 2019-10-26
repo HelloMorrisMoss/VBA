@@ -1,23 +1,155 @@
-Public Function TotalTimeToDate(hoursRange As Range) As String
+Option Explicit
+
+Public Function TotalTimeToDate(hoursRange As Range, Optional includeWeekends As Boolean = False, Optional excludeDates As Range = Nothing) As Date
  Dim clr As Range
  Dim ws As Worksheet
  Dim thisHourRng As Range
- Dim total As Long
+ Dim total As Date
+ Dim excludeDatesAr() As Variant
+ 
  
  Set clr = Application.Caller
  Set ws = clr.Parent
  
  Debug.Print Now, ws.Name, clr.Address, clr.Row, TypeName(ws.Rows(clr.Row))
- Debug.Print "hrsrng", hoursRange.Address
+ Debug.Print "hrsrng", hoursRange.Address, includeWeekends, excludeDates.Address
  
  
  If Not Intersect(ws.Rows(clr.Row), hoursRange) Is Nothing Then Set thisHourRng = Intersect(ws.Rows(clr.Row), hoursRange)
- total = clr.Offset(-1, 0).Value + thisHourRng.Value
- Debug.Print total, clr.Offset(-1, 0).Value, thisHourRng.Offset(0, -1).Value
-
-
-TotalTimeToDate = total
+ total = DateAdd("h", thisHourRng.Value, clr.Offset(-1, 0).Value)
+ 
+ If Not includeWeekends Then
+    If Weekday(total) = 1 Then total = DateAdd("h", 24, total) ' Sunday change to Monday
+    If Weekday(total) = 7 Then total = DateAdd("h", 48, total) ' Saturday change to Monday
+ End If
+ 
+    excludeDatesAr = excludeDates.Value
+ 
+ ' for skipping dates in a list of holidays etc
+ If Not excludeDates Is Nothing Then total = SkipHolidays(excludeDatesAr, total)
+ 
+ TotalTimeToDate = total
     
     
     'TotalTimeToDate = Application.Caller.Address 'just for testing, this prints the address of the cell
 End Function
+
+Sub test()
+    Dim tday As Date
+    tday = "10/30/2019"
+    
+    Dim arr() As Variant
+    arr = ThisWorkbook.Sheets(1).Range("$J$4:$J$6").Value
+    'Debug.Print LBound(arr), UBound(arr), OneDimensionize(arr)(1)
+    'tday = SkipHolidays(ThisWorkbook.Sheets(1).Range("$J$4:$J$6"), tday)
+    tday = SkipHolidays(arr, tday)
+    Debug.Print tday
+End Sub
+
+Private Function OneDimensionize(ByRef v_data() As Variant) As Variant()
+    ' based on https://stackoverflow.com/a/33566591
+    'Dim v_data() As Variant
+    Dim rw As Long, cl As Long ' for row and column
+    Dim arr1d() As Variant
+    Dim count As Long
+    
+    'v_data = ThisWorkbook.Sheets(1).Range("$J$4:$J$6").Value
+    'Debug.Print LBound(v_data), UBound(v_data)
+    
+    For rw = LBound(v_data) To UBound(v_data)
+        'Debug.Print "row ", rw
+     For cl = LBound(v_data, 2) To UBound(v_data, 2) ' note the comma 2 for the second dimension bounds.
+        'Debug.Print "cell ", cl
+            count = count + 1
+            ReDim Preserve arr1d(1 To count)
+            arr1d(count) = v_data(rw, cl)
+     Next cl
+    Next rw
+
+
+'For count = LBound(arr1d) To UBound(arr1d)
+'    Debug.Print arr1d(count)
+'Next count
+
+OneDimensionize = arr1d
+
+End Function
+
+
+
+Private Function SkipHolidays(excludeDatesAr() As Variant, ByRef total As Date) As Date
+    'Dim excludeDateAr() As Variant
+    Dim index As Long
+    Dim low As Long
+    Dim high As Long
+    Dim sortDateAr() As Variant
+    
+    Debug.Print "skip holidays start"
+    
+    sortDateAr = OneDimensionize(excludeDatesAr())
+    
+    ' exclusion dates to an array
+    'excludeDateAr = excludeDates.Value
+    
+    ' save the length of the array
+    low = LBound(sortDateAr)
+    high = UBound(sortDateAr)
+    
+    'Debug.Print "low,high", low, high
+    
+    ' sort the holidays so we can check the list once
+    ' otherwise could advance to a day which was already checked
+    Call QuickSort(sortDateAr, low, high)
+    
+    
+    For index = low To high
+        Debug.Print Now, total, sortDateAr(index)
+        If CDate(Int(total)) = sortDateAr(index) Then
+            total = DateAdd("h", 24, total)
+            Debug.Print "excluding: ", sortDateAr(index)
+        End If
+    Next index
+    
+    SkipHolidays = total
+End Function
+
+
+Public Sub QuickSort(ByRef vArray() As Variant, inLow As Long, inHi As Long)
+  ' from here: https://stackoverflow.com/a/152325
+  Dim pivot   As Variant
+  Dim tmpSwap As Variant
+  Dim tmpLow  As Long
+  Dim tmpHi   As Long
+  'Dim vArray() As Variant
+
+  'vArray = OneDimensionize(inArray)
+
+  tmpLow = inLow
+  tmpHi = inHi
+  
+  Dim tempPvt
+  tempPvt = (inLow + inHi) \ 2
+
+  pivot = vArray(tempPvt)
+
+  While (tmpLow <= tmpHi)
+     While (vArray(tmpLow) < pivot And tmpLow < inHi)
+        tmpLow = tmpLow + 1
+     Wend
+
+     While (pivot < vArray(tmpHi) And tmpHi > inLow)
+        tmpHi = tmpHi - 1
+     Wend
+
+     If (tmpLow <= tmpHi) Then
+        tmpSwap = vArray(tmpLow)
+        vArray(tmpLow) = vArray(tmpHi)
+        vArray(tmpHi) = tmpSwap
+        tmpLow = tmpLow + 1
+        tmpHi = tmpHi - 1
+     End If
+  Wend
+
+  If (inLow < tmpHi) Then QuickSort vArray, inLow, tmpHi
+  If (tmpLow < inHi) Then QuickSort vArray, tmpLow, inHi
+End Sub

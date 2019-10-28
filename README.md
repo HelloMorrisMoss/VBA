@@ -14,7 +14,7 @@ This was an early script and isn't optimized. Should pull into an array, iterate
   
 **Option Selection Worksheet Switch**
 
-    This is a worksheet module function which works with two named ranges "Options" and "selections." Changing the selection to one or more cells within the Options range will add any values within which are not in the selections range to the next available cells in the selections range. Changing the selection to cells in the selections range will remove. Selections including cells in these ranges, but also cells outside, will not make these changes.
+  This is a worksheet module function which works with two named ranges "Options" and "selections." Changing the selection to one or more cells within the Options range will add any values within which are not in the selections range to the next available cells in the selections range. Changing the selection to cells in the selections range will remove. Selections including cells in these ranges, but also cells outside, will not make these changes.    
     
 **Fill missing time series rows**
 

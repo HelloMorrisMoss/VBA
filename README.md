@@ -20,6 +20,9 @@ This was an early script and isn't optimized. Should pull into an array, iterate
 
   This is designed for changing time series data in a worksheet that was saved 'on change' to include the implied datapoints. Designed for timestamps in seconds. Is not yet designed to make changes related to multiple timestamps in the same second. Though, it can handle their presence.
   
+**Word Title Fixer**
+  Recreating a now lost (can't find Normal.dotm backup) macro which cleans up selection to be useable as a title and filename. Useful for downloading PDF papers where the filename is useless gibberish. Copy the title from the file, but it may be in all caps, have  double spaces  between  all  words, have line returns, special characters, etc.
+  
 **Estimated End Date**
 
   Worksheet function designed to take integer hours (from provided range, in the same rows) and add them to the date from the cell above to give the date when that would occur. By default, skips weekend days. Also, a range of cells with dates (without times, currently) to be excluded, such as holidays and personal days off.

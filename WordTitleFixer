@@ -1,0 +1,92 @@
+Sub TitleIfySelection()
+    Call TitleCaseSelected
+    Selection.Range.Text = ReplaceIllegalCharacters(Selection.Range.Text, "_")
+    
+End Sub
+
+Function ReplaceIllegalCharacters(strIn As String, strChar As String) As String
+    ' https://stackoverflow.com/a/50848245/10941169
+    Dim strSpecialChars As String
+    Dim i As Long
+    strSpecialChars = "~""#%&*:<>?{|}/\[]" & Chr(10) & Chr(13)
+
+    For i = 1 To Len(strSpecialChars)
+        strIn = Replace(strIn, Mid$(strSpecialChars, i, 1), strChar)
+    Next
+
+    ReplaceIllegalCharacters = strIn
+End Function
+
+Sub TitleCaseSelected()
+   ' https://answers.microsoft.com/en-us/msoffice/forum/all/title-case-in-vba/071308c1-55b4-4fc9-8869-a4ce7e6ec5fe
+    Dim lclist As String, uclist As String, wrd As Integer, sTest As String
+
+
+    ' list of lowercase words, surrounded by spaces
+    lclist = " of the by to this is from a an and for in on "
+
+    'list of uppercase words, surrounded by spaces
+    uclist = " llc lp tx lpp alj mlk gud o&g og swd "
+
+    Selection.Range.Case = wdTitleWord
+    For wrd = 2 To Selection.Range.Words.Count
+        sTest = Trim(Selection.Range.Words(wrd))
+        sTest = " " & LCase(sTest) & " "
+        If InStr(lclist, sTest) Then
+            Selection.Range.Words(wrd).Case = wdLowerCase
+        End If
+
+        If InStr(uclist, sTest) Then
+
+            Selection.Range.Words(sTest).Case = wdUpperCase
+
+        End If
+    Next wrd
+
+End Sub
+
+'Function TitleCase(in_string)
+'
+'    Dim lclist As String, uclist As String, wrd As Integer, sTest As String
+'
+'
+'    ' list of lowercase words, surrounded by spaces
+'    lclist = " of the by to this is from a an and for in on "
+'
+'    'list of uppercase words, surrounded by spaces
+'    uclist = " llc lp tx lpp alj mlk gud o&g og swd "
+'
+'    in_string.Case = wdTitleWord
+'    For wrd = 2 To Selection.Range.Words.Count
+'        sTest = Trim(Selection.Range.Words(wrd))
+'        sTest = " " & LCase(sTest) & " "
+'        If InStr(lclist, sTest) Then
+'            Selection.Range.Words(wrd).Case = wdLowerCase
+'        End If
+'
+'        If InStr(uclist, sTest) Then
+'
+'            Selection.Range.Words(sTest).Case = wdUpperCase
+'
+'        End If
+'    Next wrd
+'
+'End Function
+
+
+'Function ReplaceIllegalCharacters(strIn As String, strChar As String) As String
+'    ' https://stackoverflow.com/a/50848245/10941169
+'    Dim strSpecialChars As String
+'    Dim i As Long
+'    strSpecialChars = "~""#%&*:<>?{|}/\[]" & Chr(10) & Chr(13)
+'
+'    For i = 1 To Len(strSpecialChars)
+'        strIn = Replace(strIn, Mid$(strSpecialChars, i, 1), strChar)
+'    Next
+'
+'    ReplaceIllegalCharacters = strIn
+'End Function
+
+
+
+
